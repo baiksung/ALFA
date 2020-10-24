@@ -14,16 +14,15 @@ The code is based off the public code of MAML++, where their reimplementation of
 - PyTorch==1.5
 - numpy==1.19.1
 
-## Hardware Requirements
-
-- GPU with memory more than 27GB for a single-GPU ResNet12 training.
-
-
 To install requirements, first download Anaconda3 and then run the following:
 
 ```setup
 bash install.sh
 ```
+
+## Hardware Requirements
+
+- GPU with memory more than 27GB for a single-GPU ResNet12 training.
 
 ## Datasets
 For miniIamgenet, the dataset can be downloaded from the link provided from MAML++ public code.
