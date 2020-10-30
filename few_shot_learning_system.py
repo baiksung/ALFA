@@ -50,11 +50,11 @@ class MAMLFewShotClassifier(nn.Module):
                                                  num_classes_per_set,
                                                  args=args, device=device, meta_classifier=True).to(device=self.device)
 
-        self.task_learning_rate = args.init_inner_loop_learning_rate 
+        self.task_learning_rate = args.init_inner_loop_learning_rate
 
         self.inner_loop_optimizer = LSLRGradientDescentLearningRule(device=device,
                                                                     init_learning_rate=self.task_learning_rate,
-                                                                    init_weight_decay=5e-4,
+                                                                    init_weight_decay=args.init_inner_loop_weight_decay,
                                                                     total_num_inner_loop_steps=self.args.number_of_training_steps_per_iter,
                                                                     use_learnable_weight_decay=self.args.alfa,
                                                                     use_learnable_learning_rates=self.args.alfa,
@@ -92,11 +92,9 @@ class MAMLFewShotClassifier(nn.Module):
             num_layers = len(names_weights_copy)
             input_dim = num_layers*2
             self.regularizer = nn.Sequential(
-                nn.Linear(num_layers*2, input_dim),
-                nn.ReLU(inplace=True),
                 nn.Linear(input_dim, input_dim),
                 nn.ReLU(inplace=True),
-                nn.Linear(input_dim, num_layers*2)
+                nn.Linear(input_dim, input_dim)
             ).to(device=self.device)
 
         if self.args.attenuate:
@@ -222,7 +220,7 @@ class MAMLFewShotClassifier(nn.Module):
 
         return param_dict
 
-    def apply_inner_loop_update(self, loss, names_weights_copy, generated_gamma_params, generated_beta_params, use_second_order, current_step_idx):
+    def apply_inner_loop_update(self, loss, names_weights_copy, generated_alpha_params, generated_beta_params, use_second_order, current_step_idx):
         """
         Applies an inner loop update given current step's loss, the weights to update, a flag indicating whether to use
         second order derivatives and the current step's index.
@@ -252,8 +250,8 @@ class MAMLFewShotClassifier(nn.Module):
 
         names_weights_copy = self.inner_loop_optimizer.update_params(names_weights_dict=names_weights_copy,
                                                                      names_grads_wrt_params_dict=names_grads_copy,
-                                                                     generated_lr_params=generated_gamma_params,
-                                                                     generated_decay_params=generated_beta_params,
+                                                                     generated_alpha_params=generated_alpha_params,
+                                                                     generated_beta_params=generated_beta_params,
                                                                      num_step=current_step_idx)
 
         num_devices = torch.cuda.device_count() if torch.cuda.is_available() else 1
@@ -347,7 +345,7 @@ class MAMLFewShotClassifier(nn.Module):
                                                                backup_running_statistics=
                                                                True if (num_step == 0) else False,
                                                                training=True, num_step=num_step)
-                generated_gamma_params = {}
+                generated_alpha_params = {}
                 generated_beta_params = {}
 
                 if self.args.alfa:
@@ -365,17 +363,17 @@ class MAMLFewShotClassifier(nn.Module):
                     generated_params = self.regularizer(per_step_task_embedding)
                     num_layers = len(names_weights_copy)
 
-                    generated_gamma, generated_beta = torch.split(generated_params, split_size_or_sections=num_layers)
+                    generated_alpha, generated_beta = torch.split(generated_params, split_size_or_sections=num_layers)
                     g = 0
                     for key in names_weights_copy.keys():
-                        generated_gamma_params[key] = generated_gamma[g]
+                        generated_alpha_params[key] = generated_alpha[g]
                         generated_beta_params[key] = generated_beta[g]
                         g+=1
 
                 names_weights_copy = self.apply_inner_loop_update(loss=support_loss,
                                                                   names_weights_copy=names_weights_copy,
-                                                                  generated_gamma_params=generated_gamma_params,
                                                                   generated_beta_params=generated_beta_params,
+                                                                  generated_alpha_params=generated_alpha_params,
                                                                   use_second_order=use_second_order,
                                                                   current_step_idx=num_step)
 

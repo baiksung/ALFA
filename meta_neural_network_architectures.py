@@ -107,13 +107,8 @@ class MetaMaxResLayerReLU(nn.Module):
                                     kernel_size=3,
                                     stride=1, padding=self.padding, use_bias=self.use_bias)
 
-
-
         out = self.conv3(out)
 
-
-
-        #self.norm_layer = MetaSyncBatchNormLayer(out.shape[1], track_running_stats=True,
         self.norm_layer = MetaBatchNormLayer(out.shape[1], track_running_stats=True,
                                                      meta_batch_norm=self.meta_layer,
                                                      no_learnable_params=self.no_bn_learnable_params,
@@ -123,13 +118,10 @@ class MetaMaxResLayerReLU(nn.Module):
 
         out = self.norm_layer(out, num_step=0)
 
-
-
         self.shortcut_conv = MetaConv2dLayer(in_channels=identity.shape[1], out_channels=out.shape[1],
                                 kernel_size=1,
                                 stride=1, padding=0, use_bias=self.use_bias)
 
-        #self.shortcut_norm_layer = MetaSyncBatchNormLayer(out.shape[1], track_running_stats=True,
         self.shortcut_norm_layer = MetaBatchNormLayer(out.shape[1], track_running_stats=True,
                                                      meta_batch_norm=self.meta_layer,
                                                      no_learnable_params=self.no_bn_learnable_params,
@@ -139,10 +131,6 @@ class MetaMaxResLayerReLU(nn.Module):
 
         identity = self.shortcut_conv(identity)
         identity = self.shortcut_norm_layer(identity, num_step=0)
-
-
-
-
 
         out += identity
 
@@ -214,8 +202,6 @@ class MetaMaxResLayerReLU(nn.Module):
         identity = self.shortcut_norm_layer.forward(identity, num_step=num_step,
                                           params=norm_params_shortcut, training=training,
                                           backup_running_statistics=backup_running_statistics)
-
-
         out += identity
 
         out = F.relu(out)
@@ -234,6 +220,7 @@ class MetaMaxResLayerReLU(nn.Module):
         self.conv2.restore_backup_stats()
         self.norm_layer.restore_backup_stats()
         self.shortcut_norm_layer.restore_backup_stats()
+        
 
 class MetaConvNormLayerSwish(nn.Module):
     def __init__(self, input_shape, num_filters, kernel_size, stride, padding, use_bias, args, normalization=True,
@@ -351,9 +338,6 @@ class MetaConvNormLayerSwish(nn.Module):
             self.norm_layer.restore_backup_stats()
 
 
-
-
-
 class MetaConv2dLayer(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride, padding, use_bias, groups=1, dilation_rate=1):
         """
@@ -457,6 +441,7 @@ class MetaLinearLayer(nn.Module):
         # print(x.shape)
         out = F.linear(input=x, weight=weight, bias=bias)
         return out
+
 
 class MetaBatchNormLayer(nn.Module):
     def __init__(self, num_features, device, args, eps=1e-5, momentum=0.1, affine=True,
@@ -576,6 +561,7 @@ class MetaBatchNormLayer(nn.Module):
         return '{num_features}, eps={eps}, momentum={momentum}, affine={affine}, ' \
                'track_running_stats={track_running_stats}'.format(**self.__dict__)
 
+
 class MetaLayerNormLayer(nn.Module):
     def __init__(self, input_feature_shape, eps=1e-5, elementwise_affine=True):
         """
@@ -638,6 +624,8 @@ class MetaLayerNormLayer(nn.Module):
     def extra_repr(self):
         return '{normalized_shape}, eps={eps}, ' \
                'elementwise_affine={elementwise_affine}'.format(**self.__dict__)
+
+
 class MetaConvNormLayerReLU(nn.Module):
     def __init__(self, input_shape, num_filters, kernel_size, stride, padding, use_bias, args, normalization=True,
                  meta_layer=True, no_bn_learnable_params=False, device=None):
@@ -680,8 +668,6 @@ class MetaConvNormLayerReLU(nn.Module):
         self.conv = MetaConv2dLayer(in_channels=out.shape[1], out_channels=self.num_filters,
                                     kernel_size=self.kernel_size,
                                     stride=self.stride, padding=self.padding, use_bias=self.use_bias)
-
-
 
         out = self.conv(out)
 
@@ -1149,5 +1135,3 @@ class ResNet12(nn.Module):
         #self.layer_dict['conv0'].restore_backup_stats()
         for i in range(self.num_stages):
             self.layer_dict['layer{}'.format(i)].restore_backup_stats()
-
-
