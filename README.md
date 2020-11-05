@@ -6,6 +6,8 @@ Source code for NeurIPS 2020 paper "Meta-Learning with Adaptive Hyperparameters"
 This repository is the implementation of ALFA.
 The code is based off the public code of MAML++, where their reimplementation of MAML is used as the baseline.
 
+[Paper-arXiv](https://arxiv.org/abs/2011.00209)
+
 ## Requirements
 
 - Ubuntu 18.04
@@ -21,8 +23,7 @@ bash install.sh
 ```
 
 ## Hardware Requirements
-
-- GPU with memory more than 27GB for a single-GPU ResNet12 training.
+- GPU with memory more than 27GB for a single-GPU ResNet12 backbone second-order training.
 
 ## Datasets
 For miniIamgenet, the dataset can be downloaded from the link provided from MAML++ public code.
