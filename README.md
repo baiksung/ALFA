@@ -24,6 +24,7 @@ bash install.sh
 
 ## Hardware Requirements
 - GPU with memory more than 27GB for a single-GPU ResNet12 backbone second-order training.
+- The current version does not support a multi-GPU setting. While running on a multi-GPU will not give errors, it will give incorrect results (due to uneven distribution of labels across GPUs).
 
 ## Datasets
 For miniIamgenet, the dataset can be downloaded from the link provided from MAML++ public code.
@@ -40,13 +41,6 @@ bash alfa+maml.sh 0
 ```
 where 0 represent GPU_ID.
 
-For multi-GPU,
-
-```train
-bash alfa+maml.sh 0 1 2 3
-```
-where 0 1 2 3 represent 4 GPU_IDs.
-
 
 ## Evaluation
 
@@ -56,8 +50,3 @@ For single GPU:
 ```eval
 bash alfa+maml.sh 0
 ```
-For multi-GPU:
-```eval
-bash alfa+maml.sh 0 1 2 3
-```
-where 0 1 2 3 represent 4 GPU_IDs.
